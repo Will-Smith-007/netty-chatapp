@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group 'de.will-smith-007.chatapp'
+version '1.0.0'
+
+shadowJar {
+    minimize()
+    archiveBaseName.set('chatclient-prod')
+    archiveClassifier.set('')
+    archiveVersion.set(this.version.toString())
+    manifest {
+        attributes(
+                "Main-Class": "de.will_smith_007.chatclient.Main"
+        )
+    }
+}
+
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    implementation 'io.netty:netty-all:4.1.89.Final'
+    implementation 'org.jetbrains:annotations:16.0.2'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+    testImplementation 'org.jetbrains:annotations:16.0.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testImplementation 'io.netty:netty-all:4.1.89.Final'
+    testImplementation 'org.jetbrains:annotations:16.0.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
+}

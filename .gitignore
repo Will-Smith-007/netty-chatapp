@@ -1,0 +1,7 @@
+# Project exclude paths
+/.gradle/
+/build/
+/chatclient/build/
+/chatclient/build/classes/java/main/
+/chatserver/build/
+/chatserver/build/classes/java/main/
