@@ -3,7 +3,6 @@ package de.will_smith_007.chatserver.server;
 import de.will_smith_007.chatserver.handlers.ChatMessageHandler;
 import de.will_smith_007.chatserver.handlers.ServerHandler;
 import de.will_smith_007.chatserver.handlers.TokenAuthHandler;
-import de.will_smith_007.chatserver.logger.SimpleLogger;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
@@ -15,6 +14,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringEncoder;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -22,13 +23,14 @@ import java.util.List;
 @AllArgsConstructor
 public class ChatServer {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatServer.class);
+
     private int port;
     private static final boolean IS_EPOLL = Epoll.isAvailable();
     private volatile List<Channel> channels, authenticatedChannels;
-    private SimpleLogger simpleLogger;
 
     public void runServer() throws Exception {
-        simpleLogger.log(SimpleLogger.Level.INFO, "Chat Server wird gestartet...");
+        LOGGER.info("Chat Server wird gestartet...");
 
         final EventLoopGroup bossGroup = (IS_EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup());
         final EventLoopGroup workerGroup = (IS_EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup());
@@ -43,11 +45,10 @@ public class ChatServer {
 
                             final TokenAuthHandler tokenAuthHandler = new TokenAuthHandler(
                                     "SuperSecretToken",
-                                    simpleLogger,
                                     authenticatedChannels);
 
                             channelPipeline.addFirst(tokenAuthHandler);
-                            channelPipeline.addLast(new ServerHandler(simpleLogger, channels, authenticatedChannels));
+                            channelPipeline.addLast(new ServerHandler(channels, authenticatedChannels));
                             channelPipeline.addLast(new StringEncoder(StandardCharsets.UTF_8));
                             channelPipeline.addLast(new ChatMessageHandler(channels, authenticatedChannels));
                         }
@@ -56,11 +57,11 @@ public class ChatServer {
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             final ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
-            simpleLogger.log(SimpleLogger.Level.INFO, "Chat Server wurde gestartet.");
+            LOGGER.info("Chat Server wurde gestartet.");
 
             channelFuture.channel().closeFuture().sync();
         } finally {
-            simpleLogger.log(SimpleLogger.Level.INFO, "Chat Server wurde beendet.");
+            LOGGER.info("Chat Server wurde beendet.");
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }

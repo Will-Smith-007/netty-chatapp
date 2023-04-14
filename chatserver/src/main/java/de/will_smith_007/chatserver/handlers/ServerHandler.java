@@ -1,25 +1,25 @@
 package de.will_smith_007.chatserver.handlers;
 
-import de.will_smith_007.chatserver.logger.SimpleLogger;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class ServerHandler extends ChannelInboundHandlerAdapter {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);
+
     private final List<Channel> channels;
 
     //private final ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-    private final SimpleLogger simpleLogger;
     private final List<Channel> authenticatedChannels;
 
-    public ServerHandler(@NotNull SimpleLogger simpleLogger,
-                         @NotNull List<Channel> channels,
+    public ServerHandler(@NotNull List<Channel> channels,
                          @NotNull List<Channel> authenticatedChannels) {
-        this.simpleLogger = simpleLogger;
         this.channels = channels;
         this.authenticatedChannels = authenticatedChannels;
     }
@@ -27,14 +27,14 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) {
         final Channel clientChannel = ctx.channel();
-        simpleLogger.log(SimpleLogger.Level.INFO, "Ein Client hat die Verbindung aufgebaut. (" + clientChannel.remoteAddress() + ")");
+        LOGGER.info("Ein Client hat die Verbindung aufgebaut. (" + clientChannel.remoteAddress() + ")");
         channels.add(clientChannel);
     }
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) {
         final Channel clientChannel = ctx.channel();
-        simpleLogger.log(SimpleLogger.Level.INFO, "Ein Client hat die Verbindung getrennt. (" + clientChannel.remoteAddress() + ")");
+        LOGGER.info("Ein Client hat die Verbindung getrennt. (" + clientChannel.remoteAddress() + ")");
         channels.remove(clientChannel);
         authenticatedChannels.remove(clientChannel);
         clientChannel.close();

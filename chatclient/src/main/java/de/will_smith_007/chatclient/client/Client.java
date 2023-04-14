@@ -1,7 +1,6 @@
 package de.will_smith_007.chatclient.client;
 
 import de.will_smith_007.chatclient.handlers.ChatMessageHandler;
-import de.will_smith_007.chatclient.logger.SimpleLogger;
 import de.will_smith_007.chatclient.terminal.Terminal;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -16,21 +15,24 @@ import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
 @RequiredArgsConstructor
 public class Client {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Client.class);
+
     private final String host;
     private final int port;
     private final String requiredToken;
     private static final boolean IS_EPOLL = Epoll.isAvailable();
 
-    private final SimpleLogger simpleLogger;
-
     public void connect() {
-        simpleLogger.log(SimpleLogger.Level.INFO, "Verbinde mit Chat Server...");
+        LOGGER.info("Verbinde mit Chat Server...");
+
         final EventLoopGroup workerGroup = (IS_EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup());
         try {
             final Bootstrap bootstrap = new Bootstrap();
@@ -55,7 +57,7 @@ public class Client {
             byteBuf.writeCharSequence(requiredToken, StandardCharsets.UTF_8);
             clientChannel.writeAndFlush(byteBuf);
 
-            simpleLogger.log(SimpleLogger.Level.INFO, "Erfolgreich mit Chat Server verbunden.");
+            LOGGER.info("Erfolgreich mit Chat Server verbunden.");
 
             //Terminal initialization must be done before waiting for clientChannel close.
             final Terminal terminal = new Terminal(clientChannel);
