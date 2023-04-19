@@ -29,17 +29,22 @@ public class TokenAuthHandler extends MessageToMessageDecoder<ByteBuf> {
     protected void decode(@NotNull ChannelHandlerContext ctx, @NotNull ByteBuf msg, List<Object> out) {
         final Channel clientChannel = ctx.channel();
         final String message = msg.toString(StandardCharsets.UTF_8);
-        if (!authenticatedChannels.contains(clientChannel)) {
-            if (message.equals(requiredToken)) {
-                authenticatedChannels.add(clientChannel);
-                LOGGER.info("Ein Client hat die Verbindung verifiziert. (" + clientChannel.remoteAddress() + ")");
-                ReferenceCountUtil.release(message);
-            } else {
-                LOGGER.warn("Ein Client konnte nicht verifiziert werden. (" + clientChannel.remoteAddress() + ")");
-                ctx.close();
-            }
-        } else {
+
+        // If client is authenticated, forward this message to the next channel handler.
+        if (authenticatedChannels.contains(clientChannel)) {
             out.add(message);
+            return;
+        }
+
+        // If client isn't authenticated check the incoming message for the required token.
+        if (message.equals(requiredToken)) {
+            authenticatedChannels.add(clientChannel);
+            LOGGER.info("Ein Client hat die Verbindung verifiziert. (" + clientChannel.remoteAddress() + ")");
+            ReferenceCountUtil.release(message);
+        } else {
+            LOGGER.warn("Ein Client konnte nicht verifiziert werden. (" + clientChannel.remoteAddress() + ")");
+            clientChannel.writeAndFlush("Verbindung konnte nicht verifiziert werden.");
+            ctx.close();
         }
     }
 }

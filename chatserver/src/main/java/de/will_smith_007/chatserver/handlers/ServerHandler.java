@@ -13,14 +13,11 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);
 
-    private final List<Channel> channels;
+    private final List<Channel> connectedChannels, authenticatedChannels;
 
-    //private final ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-    private final List<Channel> authenticatedChannels;
-
-    public ServerHandler(@NotNull List<Channel> channels,
+    public ServerHandler(@NotNull List<Channel> connectedChannels,
                          @NotNull List<Channel> authenticatedChannels) {
-        this.channels = channels;
+        this.connectedChannels = connectedChannels;
         this.authenticatedChannels = authenticatedChannels;
     }
 
@@ -28,14 +25,14 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(@NotNull ChannelHandlerContext ctx) {
         final Channel clientChannel = ctx.channel();
         LOGGER.info("Ein Client hat die Verbindung aufgebaut. (" + clientChannel.remoteAddress() + ")");
-        channels.add(clientChannel);
+        connectedChannels.add(clientChannel);
     }
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) {
         final Channel clientChannel = ctx.channel();
         LOGGER.info("Ein Client hat die Verbindung getrennt. (" + clientChannel.remoteAddress() + ")");
-        channels.remove(clientChannel);
+        connectedChannels.remove(clientChannel);
         authenticatedChannels.remove(clientChannel);
         clientChannel.close();
     }

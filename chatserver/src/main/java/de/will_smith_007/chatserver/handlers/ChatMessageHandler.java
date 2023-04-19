@@ -9,23 +9,22 @@ import java.util.List;
 
 public class ChatMessageHandler extends SimpleChannelInboundHandler<String> {
 
-    private final List<Channel> channels;
-    private final List<Channel> authenticatedChannels;
+    private final List<Channel> connectedChannels, authenticatedChannels;
 
-    public ChatMessageHandler(@NotNull List<Channel> channels,
+    public ChatMessageHandler(@NotNull List<Channel> connectedChannels,
                               @NotNull List<Channel> authenticatedChannels) {
-        this.channels = channels;
+        this.connectedChannels = connectedChannels;
         this.authenticatedChannels = authenticatedChannels;
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) {
         System.out.println(msg);
-        channels.forEach(channel -> {
-            if (authenticatedChannels.contains(channel)) {
-                channel.writeAndFlush(msg, channel.voidPromise());
+        connectedChannels.forEach(clientChannel -> {
+            if (authenticatedChannels.contains(clientChannel)) {
+                clientChannel.writeAndFlush(msg, clientChannel.voidPromise());
             } else {
-                channel.writeAndFlush("Authentifizierung fehlgeschlagen, Verbindung wurde unterbrochen.");
+                clientChannel.writeAndFlush("Authentifizierung fehlgeschlagen, Verbindung wurde unterbrochen.");
                 ctx.close();
             }
         });

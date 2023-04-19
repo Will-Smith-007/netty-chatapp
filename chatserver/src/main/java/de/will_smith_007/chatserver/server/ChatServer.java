@@ -27,13 +27,14 @@ public class ChatServer {
 
     private int port;
     private static final boolean IS_EPOLL = Epoll.isAvailable();
-    private volatile List<Channel> channels, authenticatedChannels;
+    private volatile List<Channel> connectedChannels, authenticatedChannels;
 
     public void runServer() throws Exception {
         LOGGER.info("Chat Server wird gestartet...");
 
         final EventLoopGroup bossGroup = (IS_EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup());
         final EventLoopGroup workerGroup = (IS_EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup());
+
         try {
             final ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(bossGroup, workerGroup)
@@ -48,9 +49,9 @@ public class ChatServer {
                                     authenticatedChannels);
 
                             channelPipeline.addFirst(tokenAuthHandler);
-                            channelPipeline.addLast(new ServerHandler(channels, authenticatedChannels));
+                            channelPipeline.addLast(new ServerHandler(connectedChannels, authenticatedChannels));
                             channelPipeline.addLast(new StringEncoder(StandardCharsets.UTF_8));
-                            channelPipeline.addLast(new ChatMessageHandler(channels, authenticatedChannels));
+                            channelPipeline.addLast(new ChatMessageHandler(connectedChannels, authenticatedChannels));
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
@@ -61,7 +62,6 @@ public class ChatServer {
 
             channelFuture.channel().closeFuture().sync();
         } finally {
-            LOGGER.info("Chat Server wurde beendet.");
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
