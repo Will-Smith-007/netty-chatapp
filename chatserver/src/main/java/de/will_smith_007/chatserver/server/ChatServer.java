@@ -13,24 +13,22 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringEncoder;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+@Slf4j
 @AllArgsConstructor
 public class ChatServer {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChatServer.class);
 
     private int port;
     private static final boolean IS_EPOLL = Epoll.isAvailable();
     private volatile List<Channel> connectedChannels, authenticatedChannels;
 
     public void runServer() throws Exception {
-        LOGGER.info("Chat Server wird gestartet...");
+        log.info("Chat Server wird gestartet...");
 
         final EventLoopGroup bossGroup = (IS_EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup());
         final EventLoopGroup workerGroup = (IS_EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup());
@@ -58,7 +56,7 @@ public class ChatServer {
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             final ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
-            LOGGER.info("Chat Server wurde gestartet.");
+            log.info("Chat Server wurde gestartet.");
 
             channelFuture.channel().closeFuture().sync();
         } finally {

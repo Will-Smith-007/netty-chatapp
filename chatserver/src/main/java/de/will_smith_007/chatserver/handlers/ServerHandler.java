@@ -3,15 +3,13 @@ package de.will_smith_007.chatserver.handlers;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+@Slf4j
 public class ServerHandler extends ChannelInboundHandlerAdapter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerHandler.class);
 
     private final List<Channel> connectedChannels, authenticatedChannels;
 
@@ -24,14 +22,14 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(@NotNull ChannelHandlerContext ctx) {
         final Channel clientChannel = ctx.channel();
-        LOGGER.info("Ein Client hat die Verbindung aufgebaut. (" + clientChannel.remoteAddress() + ")");
+        log.info("Ein Client hat die Verbindung aufgebaut. (" + clientChannel.remoteAddress() + ")");
         connectedChannels.add(clientChannel);
     }
 
     @Override
     public void channelInactive(@NotNull ChannelHandlerContext ctx) {
         final Channel clientChannel = ctx.channel();
-        LOGGER.info("Ein Client hat die Verbindung getrennt. (" + clientChannel.remoteAddress() + ")");
+        log.info("Ein Client hat die Verbindung getrennt. (" + clientChannel.remoteAddress() + ")");
         connectedChannels.remove(clientChannel);
         authenticatedChannels.remove(clientChannel);
         clientChannel.close();

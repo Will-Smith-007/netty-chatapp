@@ -14,16 +14,14 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
+@Slf4j
 @RequiredArgsConstructor
 public class Client {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Client.class);
 
     private final String host;
     private final int port;
@@ -31,7 +29,7 @@ public class Client {
     private static final boolean IS_EPOLL = Epoll.isAvailable();
 
     public void connect() {
-        LOGGER.info("Verbinde mit Chat Server...");
+        log.info("Verbinde mit Chat Server...");
 
         final EventLoopGroup workerGroup = (IS_EPOLL ? new EpollEventLoopGroup() : new NioEventLoopGroup());
         try {
@@ -57,7 +55,7 @@ public class Client {
             byteBuf.writeCharSequence(requiredToken, StandardCharsets.UTF_8);
             clientChannel.writeAndFlush(byteBuf);
 
-            LOGGER.info("Erfolgreich mit Chat Server verbunden.");
+            log.info("Erfolgreich mit Chat Server verbunden.");
 
             //Terminal initialization must be done before waiting for clientChannel close.
             final Terminal terminal = new Terminal(clientChannel);
